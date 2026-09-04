@@ -177,6 +177,54 @@
   .settings-row .hint{font-size:11px;color:var(--muted);margin-top:2px;}
   .settings-row input[type=number],.settings-row input[type=password],.settings-row input[type=text]{border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;width:140px;text-align:center;}
   .settings-section-title{font-size:12px;font-weight:700;color:var(--gold);margin:18px 0 4px;}
+
+  /* ---- بطاقات/أقسام عامة (تُستخدم بصفحة الإعدادات وإحصائيات الغياب) ---- */
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px 20px;margin-bottom:18px;}
+
+  /* ---- صفحة الإعدادات الكاملة ---- */
+  .settings-page{max-width:720px;margin:0 auto;padding:28px 16px 60px;}
+  .settings-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:6px;}
+  .toggle-switch{width:44px;height:25px;border-radius:20px;background:#dcd3c6;border:none;cursor:pointer;position:relative;padding:0;flex-shrink:0;transition:.15s;}
+  .toggle-switch.on{background:var(--gold);}
+  .toggle-knob{position:absolute;top:2.5px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.15s;}
+  .toggle-switch.on .toggle-knob{transform:translateX(-19px);}
+
+  /* ---- إدارة المستخدمين ---- */
+  .user-list{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px;}
+  .user-row{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px;}
+  .user-row:last-child{border-bottom:none;}
+  .user-row-head{background:var(--bg);color:var(--muted);font-size:12px;}
+  .user-row-actions{display:flex;align-items:center;gap:10px;}
+  .role-pill{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;justify-self:start;}
+  .role-admin{background:#f3e6da;color:var(--navy);}
+  .role-employee{background:#e4f2ea;color:var(--success);}
+  .role-viewer{background:#f1ece3;color:var(--muted);}
+  .user-delete-btn{background:none;border:1px solid var(--border);border-radius:7px;padding:6px;cursor:pointer;color:var(--danger);display:flex;}
+  .user-delete-btn:hover{background:#fbecee;}
+  .user-add-form{display:grid;grid-template-columns:1fr 1fr auto auto;gap:8px;align-items:center;}
+  .user-add-form input,.user-add-form select{border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:13px;}
+  @media (max-width:640px){.user-add-form{grid-template-columns:1fr 1fr;} .user-row{grid-template-columns:1fr auto;} .user-row-head span:nth-child(3){display:none;}}
+
+  /* ---- بطاقات مؤشرات (إحصائيات الغياب) ---- */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:20px;}
+  .absence-kpis{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
+  .kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 18px 16px;}
+  .kpi .k-label{font-size:12px;color:var(--muted);margin-bottom:8px;}
+  .kpi .k-value{font-size:24px;font-weight:800;color:var(--navy);}
+  .kpi .k-note{font-size:11.5px;margin-top:8px;color:var(--muted);}
+  .kpi .k-note.trend-up-bad{color:var(--danger);font-weight:700;}
+  .kpi .k-note.trend-down-good{color:var(--success);font-weight:700;}
+
+  /* ---- مخطط مقارنة الغياب (عمودين متجاورين لكل فئة أيام) ---- */
+  .absence-chart{display:flex;align-items:flex-end;gap:22px;height:190px;padding:0 6px;border-bottom:1px solid var(--border);overflow-x:auto;}
+  .absence-bar-group{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:54px;}
+  .absence-bars{display:flex;align-items:flex-end;gap:4px;height:100%;}
+  .absence-bar{width:16px;border-radius:4px 4px 0 0;min-height:2px;transition:height .5s ease;}
+  .absence-bar-cur{background:var(--gold);}
+  .absence-bar-prev{background:var(--muted);opacity:.55;}
+  .absence-bar-label{font-size:11px;color:var(--muted);margin-top:8px;text-align:center;white-space:nowrap;}
+  .legend{display:flex;gap:18px;margin-top:14px;font-size:12px;color:var(--muted);flex-wrap:wrap;}
+  .legend i{width:10px;height:10px;border-radius:3px;display:inline-block;margin-left:5px;}
   .cloud-config-input{width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:11.5px;font-family:'Consolas','Courier New',monospace;direction:ltr;text-align:left;resize:vertical;}
 
   /* ---- Workspace toolbar / totals row ---- */
@@ -1102,8 +1150,10 @@ function toArabicDigits(str) {
 }
 function fmt(n) {
   const num = Number(n) || 0;
+  // بدون أصفار زائدة بعد الفاصلة — رقم صحيح يبين بدون كسور، وأي كسر فعلي
+  // يبين بأقل عدد أرقام ممكن (بحد أقصى رقمين عشريين).
   const withCommas = num.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
+    minimumFractionDigits: 0,
     maximumFractionDigits: 2
   });
   return toArabicDigits(withCommas);
@@ -1155,13 +1205,26 @@ function saveJSON(key, value) {
 const FIREBASE_CONFIG_KEY = "km:firebase-config";
 const FIREBASE_COLLECTION = "km-payroll-data";
 let firestoreDbInstance = null;
+// إعدادات Firebase مضمّنة داخل الملف نفسه — أي جهاز يفتح هذا الرابط يتصل تلقائيًا
+// بنفس قاعدة البيانات السحابية بدون أي إعداد يدوي من المستخدم. يمكن لأي مستخدم
+// لاحقًا استبدالها من الإعدادات لو احتاج الربط بمشروع Firebase مختلف مستقبلاً.
+const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCDt6iM638d225osLCOk084jK_OkkZuTfE",
+  authDomain: "khamis-payroll.firebaseapp.com",
+  projectId: "khamis-payroll",
+  storageBucket: "khamis-payroll.firebasestorage.app",
+  messagingSenderId: "260164486847",
+  appId: "1:260164486847:web:19a5f08b503aab5affa80a"
+};
 function getFirebaseConfig() {
   try {
     const raw = localStorage.getItem(FIREBASE_CONFIG_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (raw === "__disabled__") return null; // المستخدم عطّل المزامنة يدويًا من الإعدادات
+    if (raw) return JSON.parse(raw);
   } catch {
-    return null;
+    /* تجاهل أي قيمة محلية تالفة وارجع للإعداد الافتراضي المضمّن */
   }
+  return DEFAULT_FIREBASE_CONFIG;
 }
 function isCloudConfigured() {
   const c = getFirebaseConfig();
@@ -1225,12 +1288,73 @@ function getCurrentPassword() {
 function getImportPassword() {
   return localStorage.getItem(IMPORT_PASS_KEY) || getCurrentPassword();
 }
+// إعداد اختياري: طلب كلمة مرور التصدير نفسها عند استيراد مسير جديد أيضًا،
+// وليس فقط عند تصدير المسير. مضبوط من صفحة الإعدادات.
+const REQUIRE_IMPORT_PASSWORD_KEY = "km:require-import-password";
+function requireImportPassword() {
+  // افتراضيًا مفعّلة (يُطلب رمز عند الاستيراد كذلك) إلى أن يعطّلها المستخدم
+  // صراحةً من الإعدادات.
+  const v = localStorage.getItem(REQUIRE_IMPORT_PASSWORD_KEY);
+  return v === null ? true : v === "1";
+}
+
+// ============================================================================
+// المستخدمون الإضافيون وصلاحياتهم — "ali" يبقى المدير الأساسي الثابت بنفس
+// نظام كلمة المرور القديم (بدون أي تغيير)، وأي مستخدمين إضافيين (مدير/موظف/
+// مشاهد) يُضافون من صفحة الإعدادات ويُخزَّنون محليًا وسحابيًا (لو مفعّلة).
+// ============================================================================
+const USERS_KEY = "km:extra-users";
+const USERS_CLOUD_DOC = "km-users-list";
+const CURRENT_USER_KEY = "km:current-user";
+const ROLE_LABELS = { admin: "مدير", employee: "موظف", viewer: "مشاهد" };
+
+function loadUsersLocal() {
+  return loadJSON(USERS_KEY, []);
+}
+function saveUsersLocal(users) {
+  saveJSON(USERS_KEY, users);
+}
+async function syncUsersFromCloud() {
+  if (!isCloudConfigured()) return loadUsersLocal();
+  try {
+    const cloudUsers = await cloudLoad(USERS_CLOUD_DOC);
+    if (cloudUsers) { saveUsersLocal(cloudUsers); return cloudUsers; }
+    const local = loadUsersLocal();
+    if (local.length) cloudSave(USERS_CLOUD_DOC, local);
+    return local;
+  } catch {
+    return loadUsersLocal();
+  }
+}
+async function saveUsers(users) {
+  saveUsersLocal(users);
+  if (isCloudConfigured()) await cloudSave(USERS_CLOUD_DOC, users);
+}
+function findUser(users, username, password) {
+  const u = username.trim().toLowerCase();
+  if (u === APP_USERNAME && password === getCurrentPassword()) {
+    return { username: APP_USERNAME, role: "admin", status: "ok" };
+  }
+  const match = users.find(x => x.username.trim().toLowerCase() === u && x.password === password);
+  if (!match) return null;
+  if (match.enabled === false) return { status: "disabled" };
+  return { username: match.username, role: match.role, status: "ok" };
+}
+function getCurrentUser() {
+  try {
+    const raw = sessionStorage.getItem(CURRENT_USER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
 
 // ----------------------------------------------------------------------------
 // شاشة الدخول
 // ----------------------------------------------------------------------------
 function Login({
-  onSuccess
+  onSuccess,
+  users
 }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -1246,10 +1370,17 @@ function Login({
   function handleSubmit(e) {
     e.preventDefault();
     if (locked) return;
-    if (username.trim().toLowerCase() === APP_USERNAME && password === getCurrentPassword()) {
+    const user = findUser(users || [], username, password);
+    if (user && user.status === "disabled") {
+      setPassword("");
+      setError("هذا الحساب معطَّل حاليًا. تواصل مع المدير لتفعيله.");
+      return;
+    }
+    if (user) {
       localStorage.setItem(ATTEMPTS_KEY, "0");
       sessionStorage.setItem("km:authed", "1");
-      onSuccess();
+      sessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+      onSuccess(user);
     } else {
       const next = attempts + 1;
       setAttempts(next);
@@ -1384,8 +1515,10 @@ function Login({
 // ----------------------------------------------------------------------------
 // نافذة الإعدادات — محمية برمز دخول مستقل (1525)
 // ----------------------------------------------------------------------------
-function SettingsModal({
+function SettingsPage({
   settings,
+  users,
+  onUsersChange,
   onSave,
   onClose
 }) {
@@ -1405,6 +1538,33 @@ function SettingsModal({
   });
   const [cloudMsg, setCloudMsg] = useState("");
   const [cloudTesting, setCloudTesting] = useState(false);
+  const [requireImportPass, setRequireImportPass] = useState(() => requireImportPassword());
+  const [newUsername, setNewUsername] = useState("");
+  const [newUserPass, setNewUserPass] = useState("");
+  const [newUserRole, setNewUserRole] = useState("employee");
+  const [userMsg, setUserMsg] = useState("");
+  async function handleAddUser() {
+    const uname = newUsername.trim();
+    if (!uname || uname.length < 2) { setUserMsg("اكتب اسم مستخدم لا يقل عن حرفين."); return; }
+    if (uname.toLowerCase() === APP_USERNAME) { setUserMsg("هذا الاسم محجوز، اختر اسمًا آخر."); return; }
+    if ((users || []).some(u => u.username.trim().toLowerCase() === uname.toLowerCase())) { setUserMsg("اسم المستخدم موجود مسبقًا."); return; }
+    if (!newUserPass || newUserPass.length < 4) { setUserMsg("كلمة المرور لا تقل عن 4 أحرف."); return; }
+    const next = [...(users || []), { username: uname, password: newUserPass, role: newUserRole, enabled: true }];
+    await saveUsers(next);
+    onUsersChange(next);
+    setNewUsername(""); setNewUserPass(""); setNewUserRole("employee");
+    setUserMsg("تمت إضافة المستخدم بنجاح.");
+  }
+  async function handleToggleUser(username) {
+    const next = (users || []).map(u => u.username === username ? { ...u, enabled: u.enabled === false ? true : false } : u);
+    await saveUsers(next);
+    onUsersChange(next);
+  }
+  async function handleDeleteUser(username) {
+    const next = (users || []).filter(u => u.username !== username);
+    await saveUsers(next);
+    onUsersChange(next);
+  }
   function handlePinSubmit(e) {
     e.preventDefault();
     if (pin.trim() === SETTINGS_PIN) {
@@ -1444,6 +1604,11 @@ function SettingsModal({
     setImportPassMsg("تم تغيير كلمة مرور التصدير بنجاح.");
     setNewImportPass("");
   }
+  function handleToggleRequireImportPass() {
+    const next = !requireImportPass;
+    setRequireImportPass(next);
+    localStorage.setItem(REQUIRE_IMPORT_PASSWORD_KEY, next ? "1" : "0");
+  }
   function handleFullYearBackup() {
     const wb = XLSX.utils.book_new();
     let any = false;
@@ -1471,7 +1636,7 @@ function SettingsModal({
     setCloudMsg("");
     const text = cloudConfigText.trim();
     if (!text) {
-      localStorage.removeItem(FIREBASE_CONFIG_KEY);
+      localStorage.setItem(FIREBASE_CONFIG_KEY, "__disabled__");
       firestoreDbInstance = null;
       setCloudMsg("تم إلغاء ربط المزامنة السحابية. سيعمل التطبيق بالتخزين المحلي فقط.");
       return;
@@ -1480,7 +1645,7 @@ function SettingsModal({
     try {
       config = JSON.parse(text);
     } catch {
-      setCloudMsg("النص المُدخل ليس بصيغة JSON صحيحة. يرجى نسخ إعدادات Firebase كما هي بالكامل.");
+      setCloudMsg("النص المُدخل ليس بصيغة JSON صحيحة.");
       return;
     }
     if (!config.apiKey || !config.projectId) {
@@ -1495,183 +1660,162 @@ function SettingsModal({
       at: Date.now()
     });
     setCloudTesting(false);
-    setCloudMsg(ok ? "تم الاتصال بقاعدة البيانات السحابية بنجاح. ستُزامَن بيانات كل شهر تلقائيًا بين جميع الأجهزة." : "تعذّر الاتصال بقاعدة البيانات. يرجى التحقق من صحة الإعدادات ومن تفعيل Firestore في مشروع Firebase.");
+    setCloudMsg(ok ? "تم الاتصال بقاعدة البيانات السحابية بنجاح." : "تعذّر الاتصال بقاعدة البيانات. يرجى التحقق من صحة الإعدادات.");
   }
+
   if (!unlocked) {
-    return /*#__PURE__*/React.createElement("div", {
-      className: "modal-overlay",
-      onClick: onClose
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "modal",
-      style: {
-        maxWidth: 340
-      },
-      onClick: e => e.stopPropagation()
-    }, /*#__PURE__*/React.createElement("h3", null, "الدخول إلى الإعدادات"), pinError && /*#__PURE__*/React.createElement("div", {
-      className: "login-error",
-      style: {
-        marginTop: 10
-      }
-    }, pinError), /*#__PURE__*/React.createElement("form", {
-      onSubmit: handlePinSubmit
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "login-field",
-      style: {
-        marginTop: 10
-      }
-    }, /*#__PURE__*/React.createElement("label", null, "الرمز السري"), /*#__PURE__*/React.createElement("input", {
-      type: "password",
-      inputMode: "numeric",
-      value: pin,
-      onChange: e => setPin(e.target.value),
-      autoFocus: true
-    })), /*#__PURE__*/React.createElement("div", {
-      className: "modal-actions"
-    }, /*#__PURE__*/React.createElement("button", {
-      type: "button",
-      className: "btn btn-outline",
-      onClick: onClose
-    }, "إلغاء"), /*#__PURE__*/React.createElement("button", {
-      type: "submit",
-      className: "btn btn-navy"
-    }, "دخول")))));
+    return /*#__PURE__*/React.createElement("div", { className: "settings-lock-wrap" },
+      /*#__PURE__*/React.createElement("div", { className: "login-card" },
+        /*#__PURE__*/React.createElement("h3", null, "الدخول إلى الإعدادات"),
+        pinError && /*#__PURE__*/React.createElement("div", { className: "login-error", style: { marginTop: 10 } }, pinError),
+        /*#__PURE__*/React.createElement("form", { onSubmit: handlePinSubmit },
+          /*#__PURE__*/React.createElement("div", { className: "login-field", style: { marginTop: 10 } },
+            /*#__PURE__*/React.createElement("label", null, "الرمز السري"),
+            /*#__PURE__*/React.createElement("input", { type: "password", inputMode: "numeric", value: pin, onChange: e => setPin(e.target.value), autoFocus: true })
+          ),
+          /*#__PURE__*/React.createElement("div", { className: "modal-actions" },
+            /*#__PURE__*/React.createElement("button", { type: "button", className: "btn btn-outline", onClick: onClose }, "رجوع"),
+            /*#__PURE__*/React.createElement("button", { type: "submit", className: "btn btn-navy" }, "دخول")
+          )
+        )
+      )
+    );
   }
-  return /*#__PURE__*/React.createElement("div", {
-    className: "modal-overlay",
-    onClick: onClose
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "modal",
-    style: {
-      maxWidth: 460
-    },
-    onClick: e => e.stopPropagation()
-  }, /*#__PURE__*/React.createElement("h3", null, "الإعدادات"), /*#__PURE__*/React.createElement("div", {
-    className: "settings-body"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "settings-row"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, "سنة الرواتب"), /*#__PURE__*/React.createElement("div", {
-    className: "hint"
-  }, "تُستخدم في عنوان الصفحة الرئيسية وأسماء الملفات المصدَّرة.")), /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    value: year,
-    onChange: e => setYear(e.target.value)
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "settings-section-title"
-  }, "كلمة مرور الدخول إلى التطبيق"), /*#__PURE__*/React.createElement("div", {
-    className: "settings-row"
-  }, /*#__PURE__*/React.createElement("label", null, "كلمة المرور الجديدة"), /*#__PURE__*/React.createElement("input", {
-    type: "password",
-    value: newPass,
-    onChange: e => setNewPass(e.target.value)
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "settings-row"
-  }, /*#__PURE__*/React.createElement("label", null, "تأكيد كلمة المرور"), /*#__PURE__*/React.createElement("input", {
-    type: "password",
-    value: newPass2,
-    onChange: e => setNewPass2(e.target.value)
-  })), passMsg && /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 12,
-      color: passMsg.includes("بنجاح") ? "var(--success)" : "var(--danger)"
-    }
-  }, passMsg), /*#__PURE__*/React.createElement("button", {
-    className: "btn btn-outline",
-    onClick: handleChangePassword,
-    style: {
-      marginTop: 6
-    }
-  }, "تحديث كلمة مرور الدخول"), /*#__PURE__*/React.createElement("div", {
-    className: "settings-section-title"
-  }, "كلمة مرور تصدير المسير"), /*#__PURE__*/React.createElement("div", {
-    className: "hint",
-    style: {
-      marginBottom: 8
-    }
-  }, "تُطلب عند الضغط على زر \"تصدير المسير\" لاسترجاع ملف الرواتب المرفوع. وهي مستقلة عن كلمة مرور الدخول، وتساوي قيمتها افتراضيًا إلى حين تغييرها."), /*#__PURE__*/React.createElement("div", {
-    className: "settings-row"
-  }, /*#__PURE__*/React.createElement("label", null, "كلمة المرور الجديدة للتصدير"), /*#__PURE__*/React.createElement("input", {
-    type: "password",
-    value: newImportPass,
-    onChange: e => setNewImportPass(e.target.value)
-  })), importPassMsg && /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 12,
-      color: importPassMsg.includes("بنجاح") ? "var(--success)" : "var(--danger)"
-    }
-  }, importPassMsg), /*#__PURE__*/React.createElement("button", {
-    className: "btn btn-outline",
-    onClick: handleChangeImportPassword,
-    style: {
-      marginTop: 6
-    }
-  }, "تحديث كلمة مرور التصدير"), /*#__PURE__*/React.createElement("div", {
-    className: "settings-section-title"
-  }, "المزامنة السحابية بين الأجهزة (Firebase)"), /*#__PURE__*/React.createElement("div", {
-    className: "hint",
-    style: {
-      marginBottom: 8
-    }
-  }, "بضبط هذا الحقل، تُخزَّن بيانات كل شهر في قاعدة بيانات سحابية مجانية (Firebase Firestore)، بحيث تظهر نفس البيانات عند فتح الرابط من أي جهاز آخر. بدون ضبطه، يستمر التطبيق بالعمل محليًا فقط على هذا الجهاز كما كان."), /*#__PURE__*/React.createElement("textarea", {
-    className: "cloud-config-input",
-    placeholder: "الصق هنا إعدادات مشروع Firebase بصيغة JSON، مثال:{\"apiKey\":\"...\",\"authDomain\":\"...\",\"projectId\":\"...\"}",
-    value: cloudConfigText,
-    onChange: e => setCloudConfigText(e.target.value),
-    rows: 5
-  }), cloudMsg && /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 12,
-      color: cloudMsg.includes("بنجاح") ? "var(--success)" : "var(--danger)"
-    }
-  }, cloudMsg), /*#__PURE__*/React.createElement("button", {
-    className: "btn btn-outline",
-    onClick: handleSaveCloudConfig,
-    style: {
-      marginTop: 6
-    },
-    disabled: cloudTesting
-  }, cloudTesting ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Icon, {
-    path: I.loader,
-    size: 14,
-    spin: true
-  }), " جارٍ اختبار الاتصال...") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Icon, {
-    path: I.cloud,
-    size: 14
-  }), " حفظ إعدادات المزامنة واختبار الاتصال")), /*#__PURE__*/React.createElement("div", {
-    className: "settings-section-title"
-  }, "نسخة احتياطية"), /*#__PURE__*/React.createElement("div", {
-    className: "hint",
-    style: {
-      marginBottom: 8
-    }
-  }, "تنزيل ملف Excel واحد يجمع بيانات جميع الأشهر المحفوظة لسنة ", toArabicDigits(settings.year), "."), backupMsg && /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 12,
-      color: "var(--muted)"
-    }
-  }, backupMsg), /*#__PURE__*/React.createElement("button", {
-    className: "btn btn-outline",
-    onClick: handleFullYearBackup,
-    style: {
-      marginTop: 6
-    }
-  }, /*#__PURE__*/React.createElement(Icon, {
-    path: I.download,
-    size: 14
-  }), " تنزيل نسخة احتياطية لكامل السنة")), /*#__PURE__*/React.createElement("div", {
-    className: "modal-actions",
-    style: {
-      marginTop: 18
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    className: "btn btn-outline",
-    onClick: onClose
-  }, "إغلاق"), /*#__PURE__*/React.createElement("button", {
-    className: "btn btn-navy",
-    onClick: () => {
-      handleSaveYear();
-      onClose();
-    }
-  }, "حفظ"))));
+
+  return /*#__PURE__*/React.createElement("div", null,
+    /*#__PURE__*/React.createElement("div", { className: "topbar" },
+      /*#__PURE__*/React.createElement("div", { className: "topbar-inner" },
+        /*#__PURE__*/React.createElement("div", { className: "topbar-brand" },
+          /*#__PURE__*/React.createElement("button", { className: "breadcrumb-btn", onClick: onClose },
+            /*#__PURE__*/React.createElement(Icon, { path: I.chevronRight, size: 16 }), " الرئيسية"
+          )
+        ),
+        /*#__PURE__*/React.createElement("div", { className: "topbar-titles", style: { textAlign: "center" } },
+          /*#__PURE__*/React.createElement("h1", null, "الإعدادات")
+        ),
+        /*#__PURE__*/React.createElement("div", { style: { width: 90 } })
+      )
+    ),
+    /*#__PURE__*/React.createElement("main", { className: "settings-page" },
+
+      /*#__PURE__*/React.createElement("section", { className: "panel" },
+        /*#__PURE__*/React.createElement("h2", { className: "settings-section-title" }, "سنة الرواتب"),
+        /*#__PURE__*/React.createElement("div", { className: "settings-row" },
+          /*#__PURE__*/React.createElement("div", null,
+            /*#__PURE__*/React.createElement("label", null, "السنة المعروضة بالصفحة الرئيسية"),
+            /*#__PURE__*/React.createElement("div", { className: "hint" }, "تُستخدم في عنوان الصفحة الرئيسية وأسماء الملفات المصدَّرة.")
+          ),
+          /*#__PURE__*/React.createElement("input", { type: "number", value: year, onChange: e => setYear(e.target.value) })
+        ),
+        /*#__PURE__*/React.createElement("button", { className: "btn btn-navy", onClick: handleSaveYear, style: { marginTop: 10 } }, "حفظ السنة")
+      ),
+
+      /*#__PURE__*/React.createElement("section", { className: "panel" },
+        /*#__PURE__*/React.createElement("h2", { className: "settings-section-title" }, "كلمة مرور الدخول إلى التطبيق"),
+        /*#__PURE__*/React.createElement("div", { className: "settings-row" },
+          /*#__PURE__*/React.createElement("label", null, "كلمة المرور الجديدة"),
+          /*#__PURE__*/React.createElement("input", { type: "password", value: newPass, onChange: e => setNewPass(e.target.value) })
+        ),
+        /*#__PURE__*/React.createElement("div", { className: "settings-row" },
+          /*#__PURE__*/React.createElement("label", null, "تأكيد كلمة المرور"),
+          /*#__PURE__*/React.createElement("input", { type: "password", value: newPass2, onChange: e => setNewPass2(e.target.value) })
+        ),
+        passMsg && /*#__PURE__*/React.createElement("p", { style: { fontSize: 12, color: passMsg.includes("بنجاح") ? "var(--success)" : "var(--danger)" } }, passMsg),
+        /*#__PURE__*/React.createElement("button", { className: "btn btn-outline", onClick: handleChangePassword, style: { marginTop: 6 } }, "تحديث كلمة مرور الدخول")
+      ),
+
+      /*#__PURE__*/React.createElement("section", { className: "panel" },
+        /*#__PURE__*/React.createElement("h2", { className: "settings-section-title" }, "واجهة المسير: الاستيراد والتصدير"),
+        /*#__PURE__*/React.createElement("div", { className: "hint", style: { marginBottom: 10 } }, "تُطلب كلمة مرور التصدير عند الضغط على \"تصدير المسير\" لاسترجاع ملف الرواتب المرفوع. وهي مستقلة عن كلمة مرور الدخول، وتساوي قيمتها افتراضيًا إلى حين تغييرها."),
+        /*#__PURE__*/React.createElement("div", { className: "settings-row" },
+          /*#__PURE__*/React.createElement("label", null, "كلمة المرور الجديدة للتصدير"),
+          /*#__PURE__*/React.createElement("input", { type: "password", value: newImportPass, onChange: e => setNewImportPass(e.target.value) })
+        ),
+        importPassMsg && /*#__PURE__*/React.createElement("p", { style: { fontSize: 12, color: importPassMsg.includes("بنجاح") ? "var(--success)" : "var(--danger)" } }, importPassMsg),
+        /*#__PURE__*/React.createElement("button", { className: "btn btn-outline", onClick: handleChangeImportPassword, style: { marginTop: 6, marginBottom: 16 } }, "تحديث كلمة مرور التصدير"),
+        /*#__PURE__*/React.createElement("div", { className: "settings-toggle-row" },
+          /*#__PURE__*/React.createElement("div", null,
+            /*#__PURE__*/React.createElement("label", null, "طلب كلمة مرور التصدير عند الاستيراد أيضًا"),
+            /*#__PURE__*/React.createElement("div", { className: "hint" }, "عند التفعيل، يُطلب إدخال كلمة مرور التصدير نفسها قبل استيراد أي ملف مسير جديد.")
+          ),
+          /*#__PURE__*/React.createElement("button", {
+            className: "toggle-switch" + (requireImportPass ? " on" : ""),
+            onClick: handleToggleRequireImportPass,
+            "aria-pressed": requireImportPass
+          }, /*#__PURE__*/React.createElement("span", { className: "toggle-knob" }))
+        )
+      ),
+
+      /*#__PURE__*/React.createElement("section", { className: "panel" },
+        /*#__PURE__*/React.createElement("h2", { className: "settings-section-title" }, "إدارة المستخدمين"),
+        /*#__PURE__*/React.createElement("div", { className: "user-list" },
+          /*#__PURE__*/React.createElement("div", { className: "user-row user-row-head" },
+            /*#__PURE__*/React.createElement("span", null, "ali (مدير أساسي)"),
+            /*#__PURE__*/React.createElement("span", { className: "role-pill role-admin" }, "مدير"),
+            /*#__PURE__*/React.createElement("span", null, "—")
+          ),
+          (users || []).map(u => /*#__PURE__*/React.createElement("div", { key: u.username, className: "user-row" },
+            /*#__PURE__*/React.createElement("span", null, u.username),
+            /*#__PURE__*/React.createElement("span", { className: "role-pill role-" + u.role }, ROLE_LABELS[u.role] || u.role),
+            /*#__PURE__*/React.createElement("div", { className: "user-row-actions" },
+              /*#__PURE__*/React.createElement("button", {
+                className: "toggle-switch" + (u.enabled === false ? "" : " on"),
+                onClick: () => handleToggleUser(u.username),
+                "aria-pressed": u.enabled !== false,
+                title: u.enabled === false ? "معطَّل — اضغط للتفعيل" : "مفعَّل — اضغط للتعطيل"
+              }, /*#__PURE__*/React.createElement("span", { className: "toggle-knob" })),
+              /*#__PURE__*/React.createElement("button", {
+                className: "user-delete-btn",
+                onClick: () => handleDeleteUser(u.username),
+                title: "حذف المستخدم"
+              }, /*#__PURE__*/React.createElement(Icon, { path: I.trash, size: 14 }))
+            )
+          )),
+          (!users || users.length === 0) && /*#__PURE__*/React.createElement("p", { className: "hint", style: { padding: "8px 0" } }, "لا يوجد مستخدمون إضافيون بعد.")
+        ),
+        /*#__PURE__*/React.createElement("div", { className: "user-add-form" },
+          /*#__PURE__*/React.createElement("input", { placeholder: "اسم المستخدم", value: newUsername, onChange: e => setNewUsername(e.target.value) }),
+          /*#__PURE__*/React.createElement("input", { type: "password", placeholder: "كلمة المرور", value: newUserPass, onChange: e => setNewUserPass(e.target.value) }),
+          /*#__PURE__*/React.createElement("select", { value: newUserRole, onChange: e => setNewUserRole(e.target.value) },
+            /*#__PURE__*/React.createElement("option", { value: "admin" }, "مدير"),
+            /*#__PURE__*/React.createElement("option", { value: "employee" }, "موظف"),
+            /*#__PURE__*/React.createElement("option", { value: "viewer" }, "مشاهد")
+          ),
+          /*#__PURE__*/React.createElement("button", { className: "btn btn-navy", onClick: handleAddUser }, /*#__PURE__*/React.createElement(Icon, { path: I.plus, size: 14 }), " إضافة")
+        ),
+        userMsg && /*#__PURE__*/React.createElement("p", { style: { fontSize: 12, color: userMsg.includes("بنجاح") ? "var(--success)" : "var(--danger)" } }, userMsg)
+      ),
+
+      /*#__PURE__*/React.createElement("section", { className: "panel" },
+        /*#__PURE__*/React.createElement("h2", { className: "settings-section-title" }, "المزامنة السحابية بين الأجهزة"),
+        /*#__PURE__*/React.createElement("textarea", {
+          className: "cloud-config-input",
+          placeholder: "إعدادات مشروع Firebase بصيغة JSON",
+          value: cloudConfigText,
+          onChange: e => setCloudConfigText(e.target.value),
+          rows: 5
+        }),
+        cloudMsg && /*#__PURE__*/React.createElement("p", { style: { fontSize: 12, color: cloudMsg.includes("بنجاح") ? "var(--success)" : "var(--danger)" } }, cloudMsg),
+        /*#__PURE__*/React.createElement("button", {
+          className: "btn btn-outline",
+          onClick: handleSaveCloudConfig,
+          style: { marginTop: 6 },
+          disabled: cloudTesting
+        }, cloudTesting
+          ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Icon, { path: I.loader, size: 14, spin: true }), " جارٍ اختبار الاتصال...")
+          : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Icon, { path: I.cloud, size: 14 }), " حفظ إعدادات المزامنة واختبار الاتصال"))
+      ),
+
+      /*#__PURE__*/React.createElement("section", { className: "panel" },
+        /*#__PURE__*/React.createElement("h2", { className: "settings-section-title" }, "نسخة احتياطية"),
+        /*#__PURE__*/React.createElement("div", { className: "hint", style: { marginBottom: 8 } }, "تنزيل ملف Excel واحد يجمع بيانات جميع الأشهر المحفوظة لسنة ", toArabicDigits(settings.year), "."),
+        backupMsg && /*#__PURE__*/React.createElement("p", { style: { fontSize: 12, color: "var(--muted)" } }, backupMsg),
+        /*#__PURE__*/React.createElement("button", { className: "btn btn-outline", onClick: handleFullYearBackup, style: { marginTop: 6 } },
+          /*#__PURE__*/React.createElement(Icon, { path: I.download, size: 14 }), " تنزيل نسخة احتياطية لكامل السنة"
+        )
+      )
+    )
+  );
 }
 
 // ----------------------------------------------------------------------------
@@ -1680,6 +1824,7 @@ function SettingsModal({
 function Home({
   settings,
   monthsWithData,
+  role,
   onOpenMonth,
   onOpenSettings,
   onLogout
@@ -1706,7 +1851,7 @@ function Home({
       gap: 8,
       justifyContent: "flex-end"
     }
-  }, /*#__PURE__*/React.createElement("button", {
+  }, role === "admin" && /*#__PURE__*/React.createElement("button", {
     className: "icon-btn",
     title: "الإعدادات",
     onClick: onOpenSettings
@@ -1742,16 +1887,16 @@ function Home({
 }
 
 // ----------------------------------------------------------------------------
-// إحصائيات حسميات "لصالح الجهة" — تحويل مبلغ الحسم إلى عدد أيام غياب تقديري
-// بمقارنته براتب الموظف الأساسي (بدل عرض المبلغ المالي الكامل فقط)، ثم عرض
-// توزيع عدد الموظفين حسب عدد أيام الغياب المشتقّة.
+// إحصائيات الغياب — تحويل مبلغ حسم "لصالح الجهة" إلى عدد أيام غياب تقديري
+// بمقارنته براتب الموظف الأساسي (بدل عرض المبلغ المالي الكامل فقط)، مع عرض
+// بياني تفاعلي ومقارنة مع الشهر السابق.
 // ----------------------------------------------------------------------------
-function AbsenceStats({ employees }) {
+function computeAbsenceBuckets(employees) {
   const rows = employees.map(emp => {
     const basic = Number(emp.basicSalary) || 0;
     const deduction = Number(emp.ownEntity) || 0;
     const dailyRate = basic > 0 ? basic / 30 : 0;
-    let days = null; // null = غير محدد (لا يوجد راتب أساسي لحساب المعدل اليومي)
+    let days = null;
     if (deduction <= 0) {
       days = 0;
     } else if (dailyRate > 0) {
@@ -1759,32 +1904,116 @@ function AbsenceStats({ employees }) {
     }
     return { emp, basic, deduction, days };
   });
-
   const buckets = {};
   let undeterminedCount = 0;
   rows.forEach(r => {
     if (r.days === null) { undeterminedCount++; return; }
-    const key = r.days >= 5 ? "٥ أيام فأكثر" : String(r.days);
-    if (!buckets[key]) buckets[key] = { label: r.days === 0 ? "بدون حسم (٠ يوم)" : (r.days >= 5 ? "٥ أيام فأكثر" : `${r.days} ${r.days === 1 ? "يوم" : "أيام"}`), count: 0, totalBasic: 0, totalDeduction: 0 };
+    const key = r.days >= 5 ? "5+" : String(r.days);
+    if (!buckets[key]) buckets[key] = { key, label: r.days === 0 ? "بدون حسم (٠ يوم)" : r.days >= 5 ? "٥ أيام فأكثر" : `${r.days} ${r.days === 1 ? "يوم" : "أيام"}`, count: 0, totalBasic: 0, totalDeduction: 0 };
     buckets[key].count += 1;
     buckets[key].totalBasic += r.basic;
     buckets[key].totalDeduction += r.deduction;
   });
-
-  const order = ["0", "1", "2", "3", "4", "٥ أيام فأكثر"];
+  const order = ["0", "1", "2", "3", "4", "5+"];
   const bucketRows = order.filter(k => buckets[k]).map(k => buckets[k]);
-  const totalEmployees = rows.length;
-  const totalDeductionSum = rows.reduce((s, r) => s + r.deduction, 0);
+  return {
+    bucketRows,
+    undeterminedCount,
+    totalEmployees: rows.length,
+    totalDeductionSum: rows.reduce((s, r) => s + r.deduction, 0),
+    employeesWithAbsence: rows.filter(r => r.days !== null && r.days > 0).length
+  };
+}
+
+function AbsenceStats({ employees, year, monthIdx }) {
+  const current = computeAbsenceBuckets(employees);
+  const [prevData, setPrevData] = useState(null);
+  const [prevLabel, setPrevLabel] = useState("");
+  const [loadingPrev, setLoadingPrev] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoadingPrev(true);
+    const prevMonthIdx = monthIdx === 0 ? 11 : monthIdx - 1;
+    const prevYear = monthIdx === 0 ? year - 1 : year;
+    setPrevLabel(`${MONTHS_AR[prevMonthIdx]} ${prevYear}`);
+    const key = monthKey(prevYear, prevMonthIdx);
+    (async () => {
+      let list = loadJSON(key, null);
+      if ((!list || !list.length) && isCloudConfigured()) {
+        const cloudList = await cloudLoad(key);
+        if (cloudList) list = cloudList;
+      }
+      if (!cancelled) {
+        setPrevData(list && list.length ? computeAbsenceBuckets(list) : null);
+        setLoadingPrev(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [year, monthIdx]);
+
+  const order = ["0", "1", "2", "3", "4", "5+"];
+  const allKeys = order.filter(k => current.bucketRows.some(b => b.key === k) || (prevData && prevData.bucketRows.some(b => b.key === k)));
+  const getCount = (data, k) => { const b = data && data.bucketRows.find(x => x.key === k); return b ? b.count : 0; };
+  const maxCount = Math.max(1, ...allKeys.map(k => Math.max(getCount(current, k), getCount(prevData, k))));
+
+  const diff = prevData ? current.employeesWithAbsence - prevData.employeesWithAbsence : null;
+  const diffDeduction = prevData ? current.totalDeductionSum - prevData.totalDeductionSum : null;
 
   return /*#__PURE__*/React.createElement("div", null,
     /*#__PURE__*/React.createElement("div", { className: "section-head" },
       /*#__PURE__*/React.createElement("div", null,
-        /*#__PURE__*/React.createElement("h2", null, "إحصائيات حسميات \"لصالح الجهة\" حسب عدد أيام الغياب"),
-        /*#__PURE__*/React.createElement("p", null, "عدد الموظفين لكل فئة أيام غياب، مُحتسبة من مبلغ الحسم مقسومًا على المعدّل اليومي لراتب كل موظف (الراتب الأساسي ÷ ٣٠) — وليس على إجمالي مبلغ الحسم مباشرة.")
+        /*#__PURE__*/React.createElement("h2", null, "إحصائيات الغياب")
       )
     ),
+
+    /*#__PURE__*/React.createElement("div", { className: "kpis absence-kpis" },
+      /*#__PURE__*/React.createElement("div", { className: "kpi" },
+        /*#__PURE__*/React.createElement("div", { className: "k-label" }, "موظفون عليهم غياب هذا الشهر"),
+        /*#__PURE__*/React.createElement("div", { className: "k-value num" }, toArabicDigits(current.employeesWithAbsence)),
+        !loadingPrev && diff !== null && /*#__PURE__*/React.createElement("div", { className: "k-note " + (diff > 0 ? "trend-up-bad" : diff < 0 ? "trend-down-good" : "") },
+          diff === 0 ? "بدون تغيّر عن الشهر السابق" : (diff > 0 ? "▲ " : "▼ ") + toArabicDigits(Math.abs(diff)) + " مقارنة بـ" + prevLabel
+        )
+      ),
+      /*#__PURE__*/React.createElement("div", { className: "kpi" },
+        /*#__PURE__*/React.createElement("div", { className: "k-label" }, "إجمالي القيمة المالية للغياب"),
+        /*#__PURE__*/React.createElement("div", { className: "k-value num" }, fmt(current.totalDeductionSum)),
+        !loadingPrev && diffDeduction !== null && /*#__PURE__*/React.createElement("div", { className: "k-note " + (diffDeduction > 0 ? "trend-up-bad" : diffDeduction < 0 ? "trend-down-good" : "") },
+          diffDeduction === 0 ? "بدون تغيّر عن الشهر السابق" : (diffDeduction > 0 ? "▲ " : "▼ ") + fmt(Math.abs(diffDeduction)) + " مقارنة بـ" + prevLabel
+        )
+      )
+    ),
+
+    /*#__PURE__*/React.createElement("div", { className: "panel" },
+      /*#__PURE__*/React.createElement("div", { className: "section-head" },
+        /*#__PURE__*/React.createElement("div", null,
+          /*#__PURE__*/React.createElement("h2", null, "مقارنة عدد الموظفين حسب أيام الغياب"),
+          /*#__PURE__*/React.createElement("p", null, loadingPrev ? "جارِ تحميل بيانات الشهر السابق للمقارنة..." : prevData ? `مقارنة بين ${prevLabel} والشهر الحالي` : `لا توجد بيانات محفوظة لشهر ${prevLabel} للمقارنة`)
+        )
+      ),
+      /*#__PURE__*/React.createElement("div", { className: "absence-chart" },
+        allKeys.map(k => {
+          const curVal = getCount(current, k);
+          const prevVal = getCount(prevData, k);
+          const label = current.bucketRows.find(b => b.key === k) ? current.bucketRows.find(b => b.key === k).label
+            : (prevData && prevData.bucketRows.find(b => b.key === k) ? prevData.bucketRows.find(b => b.key === k).label : k);
+          return /*#__PURE__*/React.createElement("div", { key: k, className: "absence-bar-group" },
+            /*#__PURE__*/React.createElement("div", { className: "absence-bars" },
+              prevData && /*#__PURE__*/React.createElement("div", { className: "absence-bar absence-bar-prev", style: { height: (prevVal / maxCount * 100) + "%" }, title: prevLabel + ": " + prevVal }),
+              /*#__PURE__*/React.createElement("div", { className: "absence-bar absence-bar-cur", style: { height: (curVal / maxCount * 100) + "%" }, title: "الشهر الحالي: " + curVal })
+            ),
+            /*#__PURE__*/React.createElement("div", { className: "absence-bar-label" }, label)
+          );
+        })
+      ),
+      /*#__PURE__*/React.createElement("div", { className: "legend" },
+        /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("i", { style: { background: "var(--gold)" } }), " الشهر الحالي"),
+        prevData && /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("i", { style: { background: "var(--muted)" } }), " ", prevLabel)
+      )
+    ),
+
     /*#__PURE__*/React.createElement("div", { className: "table-wrap" },
-      totalEmployees === 0
+      current.totalEmployees === 0
         ? /*#__PURE__*/React.createElement("div", { className: "empty" },
             /*#__PURE__*/React.createElement("p", { style: { fontSize: 13, marginTop: 8 } }, "لا يوجد موظفون بعد لعرض الإحصائية.")
           )
@@ -1798,23 +2027,23 @@ function AbsenceStats({ employees }) {
               )
             ),
             /*#__PURE__*/React.createElement("tbody", null,
-              bucketRows.map(b => /*#__PURE__*/React.createElement("tr", { key: b.label },
+              current.bucketRows.map(b => /*#__PURE__*/React.createElement("tr", { key: b.label },
                 /*#__PURE__*/React.createElement("td", { style: { textAlign: "right" } }, b.label),
                 /*#__PURE__*/React.createElement("td", { className: "num" }, toArabicDigits(b.count)),
                 /*#__PURE__*/React.createElement("td", { className: "num" }, fmt(b.totalBasic / b.count)),
                 /*#__PURE__*/React.createElement("td", { className: "num" }, fmt(b.totalDeduction))
               )),
-              undeterminedCount > 0 && /*#__PURE__*/React.createElement("tr", null,
+              current.undeterminedCount > 0 && /*#__PURE__*/React.createElement("tr", null,
                 /*#__PURE__*/React.createElement("td", { style: { textAlign: "right", color: "var(--muted)" } }, "غير محدد (لا يوجد راتب أساسي مسجّل للمقارنة)"),
-                /*#__PURE__*/React.createElement("td", { className: "num" }, toArabicDigits(undeterminedCount)),
+                /*#__PURE__*/React.createElement("td", { className: "num" }, toArabicDigits(current.undeterminedCount)),
                 /*#__PURE__*/React.createElement("td", { className: "num" }, "—"),
                 /*#__PURE__*/React.createElement("td", { className: "num" }, "—")
               ),
               /*#__PURE__*/React.createElement("tr", { className: "grand" },
                 /*#__PURE__*/React.createElement("td", { style: { textAlign: "right" } }, "الإجمالي"),
-                /*#__PURE__*/React.createElement("td", { className: "num" }, toArabicDigits(totalEmployees)),
+                /*#__PURE__*/React.createElement("td", { className: "num" }, toArabicDigits(current.totalEmployees)),
                 /*#__PURE__*/React.createElement("td", null, "—"),
-                /*#__PURE__*/React.createElement("td", { className: "num" }, fmt(totalDeductionSum))
+                /*#__PURE__*/React.createElement("td", { className: "num" }, fmt(current.totalDeductionSum))
               )
             )
           )
@@ -1828,16 +2057,21 @@ function AbsenceStats({ employees }) {
 function MonthWorkspace({
   year,
   monthIdx,
+  role,
   onBack
 }) {
+  const isViewer = role === "viewer";
   const [employees, setEmployees] = useState([]);
-  const [tab, setTab] = useState("data");
+  const [tab, setTab] = useState(isViewer ? "summary" : "data");
   const [ready, setReady] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
   const [importWarning, setImportWarning] = useState(null);
   const [expanded, setExpanded] = useState({});
   const [showExportGate, setShowExportGate] = useState(false);
+  const [showImportGate, setShowImportGate] = useState(false);
+  const [importPin, setImportPin] = useState("");
+  const [importPinError, setImportPinError] = useState("");
   const [exportPin, setExportPin] = useState("");
   const [exportPinError, setExportPinError] = useState("");
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
@@ -1983,6 +2217,28 @@ function MonthWorkspace({
     setExportPin("");
     setExportPinError("");
     setShowExportGate(true);
+  }
+  // "استيراد مسير الرواتب" — إذا كان إعداد "طلب كلمة مرور التصدير عند
+  // الاستيراد أيضًا" مفعّلًا من الإعدادات، يُطلب نفس رمز التصدير قبل فتح
+  // منتقي الملفات؛ وإلا يُفتح مباشرة كما كان.
+  function requestImport() {
+    if (requireImportPassword()) {
+      setImportPin("");
+      setImportPinError("");
+      setShowImportGate(true);
+    } else {
+      fileInputRef.current.click();
+    }
+  }
+  function confirmImport(e) {
+    e.preventDefault();
+    if (importPin !== getImportPassword()) {
+      setImportPinError("كلمة المرور غير صحيحة.");
+      setImportPin("");
+      return;
+    }
+    setShowImportGate(false);
+    fileInputRef.current.click();
   }
   function confirmRawExport(e) {
     e.preventDefault();
@@ -2208,22 +2464,59 @@ function MonthWorkspace({
   }, "إلغاء"), /*#__PURE__*/React.createElement("button", {
     type: "submit",
     className: "btn btn-navy"
-  }, "تأكيد وتنزيل"))))), /*#__PURE__*/React.createElement("main", null, /*#__PURE__*/React.createElement("div", {
+  }, "تأكيد وتنزيل"))))), showImportGate && /*#__PURE__*/React.createElement("div", {
+    className: "modal-overlay",
+    onClick: () => setShowImportGate(false)
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal",
+    style: {
+      maxWidth: 360
+    },
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("h3", null, "تأكيد استيراد المسير"), importPinError && /*#__PURE__*/React.createElement("div", {
+    className: "login-error",
+    style: {
+      marginTop: 10
+    }
+  }, importPinError), /*#__PURE__*/React.createElement("form", {
+    onSubmit: confirmImport
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "login-field",
+    style: {
+      marginTop: 10
+    }
+  }, /*#__PURE__*/React.createElement("label", null, "كلمة مرور الاستيراد"), /*#__PURE__*/React.createElement("input", {
+    type: "password",
+    value: importPin,
+    onChange: e => setImportPin(e.target.value),
+    autoFocus: true
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "modal-actions"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn btn-outline",
+    onClick: () => setShowImportGate(false)
+  }, "إلغاء"), /*#__PURE__*/React.createElement("button", {
+    type: "submit",
+    className: "btn btn-navy"
+  }, "تأكيد ومتابعة"))))), /*#__PURE__*/React.createElement("main", null, /*#__PURE__*/React.createElement("div", {
     className: "toolbar"
   }, /*#__PURE__*/React.createElement("div", {
     className: "tabs"
-  }, /*#__PURE__*/React.createElement("button", {
+  }, !isViewer && /*#__PURE__*/React.createElement("button", {
     className: "tab" + (tab === "data" ? " active" : ""),
     onClick: () => setTab("data")
   }, "بيانات الموظفين (", toArabicDigits(employees.length), ")"), /*#__PURE__*/React.createElement("button", {
     className: "tab" + (tab === "summary" ? " active" : ""),
     onClick: () => setTab("summary")
-  }, "خلاصة المسير"), /*#__PURE__*/React.createElement("button", {
+  }, "خلاصة المسير"), !isViewer && /*#__PURE__*/React.createElement("button", {
     className: "tab" + (tab === "absence" ? " active" : ""),
     onClick: () => setTab("absence")
-  }, "إحصائيات حسميات لصالح الجهة")), /*#__PURE__*/React.createElement("div", {
+  }, "إحصائيات الغياب")), /*#__PURE__*/React.createElement("div", {
     className: "toolbar-actions"
-  }, /*#__PURE__*/React.createElement("span", {
+  }, isViewer ? /*#__PURE__*/React.createElement("span", {
+    className: "save-status"
+  }, "وضع القراءة فقط") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
     className: "save-status"
   }, syncing ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Icon, {
     path: I.loader,
@@ -2257,7 +2550,7 @@ function MonthWorkspace({
     }
   }), /*#__PURE__*/React.createElement("button", {
     className: "btn btn-outline",
-    onClick: () => fileInputRef.current.click()
+    onClick: requestImport
   }, /*#__PURE__*/React.createElement(Icon, {
     path: I.upload,
     size: 14
@@ -2292,7 +2585,7 @@ function MonthWorkspace({
   }, /*#__PURE__*/React.createElement(Icon, {
     path: I.download,
     size: 14
-  }), " تصدير الخلاصة Excel"))), importWarning && /*#__PURE__*/React.createElement("div", {
+  }), " تصدير الخلاصة Excel")))), importWarning && /*#__PURE__*/React.createElement("div", {
     className: "banner banner-warn"
   }, /*#__PURE__*/React.createElement(Icon, {
     path: I.alert,
@@ -2446,7 +2739,9 @@ function MonthWorkspace({
       className: "num"
     }, fmt(r.net)))))));
   }))) : tab === "absence" ? /*#__PURE__*/React.createElement(AbsenceStats, {
-    employees: employees
+    employees: employees,
+    year: year,
+    monthIdx: monthIdx
   }) : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "data-toolbar"
   }, /*#__PURE__*/React.createElement("div", {
@@ -2636,10 +2931,18 @@ function App() {
   const [settings, setSettings] = useState(() => loadJSON(SETTINGS_KEY, {
     year: 2026
   }));
-  const [screen, setScreen] = useState("home"); // 'home' | 'month'
+  const [screen, setScreen] = useState("home"); // 'home' | 'month' | 'settings'
   const [activeMonth, setActiveMonth] = useState(null);
-  const [showSettings, setShowSettings] = useState(false);
   const [monthsWithData, setMonthsWithData] = useState(() => new Set());
+  const [users, setUsers] = useState(() => loadUsersLocal());
+  const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
+
+  useEffect(() => {
+    let cancelled = false;
+    syncUsersFromCloud().then(list => { if (!cancelled) setUsers(list); });
+    return () => { cancelled = true; };
+  }, []);
+
   useEffect(() => {
     if (!authed) return;
     const found = new Set();
@@ -2652,32 +2955,40 @@ function App() {
   function handleSaveSettings(next) {
     setSettings(next);
     saveJSON(SETTINGS_KEY, next);
-    setShowSettings(false);
+    setScreen("home");
   }
   function handleLogout() {
     sessionStorage.removeItem("km:authed");
+    sessionStorage.removeItem(CURRENT_USER_KEY);
     setAuthed(false);
+    setCurrentUser(null);
   }
+  const role = currentUser ? currentUser.role : "admin";
   if (!authed) return /*#__PURE__*/React.createElement(Login, {
-    onSuccess: () => setAuthed(true)
+    users: users,
+    onSuccess: user => { setCurrentUser(user); setAuthed(true); }
   });
   return /*#__PURE__*/React.createElement(React.Fragment, null, screen === "home" && /*#__PURE__*/React.createElement(Home, {
     settings: settings,
     monthsWithData: monthsWithData,
+    role: role,
     onOpenMonth: idx => {
       setActiveMonth(idx);
       setScreen("month");
     },
-    onOpenSettings: () => setShowSettings(true),
+    onOpenSettings: () => setScreen("settings"),
     onLogout: handleLogout
   }), screen === "month" && /*#__PURE__*/React.createElement(MonthWorkspace, {
     year: settings.year,
     monthIdx: activeMonth,
+    role: role,
     onBack: () => setScreen("home")
-  }), showSettings && /*#__PURE__*/React.createElement(SettingsModal, {
+  }), screen === "settings" && role === "admin" && /*#__PURE__*/React.createElement(SettingsPage, {
     settings: settings,
+    users: users,
+    onUsersChange: setUsers,
     onSave: handleSaveSettings,
-    onClose: () => setShowSettings(false)
+    onClose: () => setScreen("home")
   }), /*#__PURE__*/React.createElement("footer", null, "بلدية خميس مشيط — نظام داخلي لإدارة مسيرات الرواتب الشهرية"));
 }
 ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElement(App, null));
