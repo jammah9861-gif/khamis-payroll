@@ -154,11 +154,15 @@
   .icon-btn:hover{background:rgba(255,255,255,.16);}
   .breadcrumb-btn{background:none;border:none;color:#d7c3b3;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px;padding:6px 4px;}
   .breadcrumb-btn:hover{color:#fff;}
+  .current-user-badge{color:#EFE9DA;font-size:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:20px;padding:5px 12px;white-space:nowrap;}
 
   /* ---- Home: month grid ---- */
   .home-header{max-width:1200px;margin:0 auto;padding:28px 20px 6px;text-align:center;}
   .home-header h2{font-size:27px;margin:0;color:var(--navy);font-weight:800;}
   .home-header p{font-size:13px;color:var(--muted);margin:8px 0 0;}
+  .sync-now-btn{margin:14px auto 0;display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--border);border-radius:20px;padding:8px 18px;font-size:12.5px;color:var(--navy);cursor:pointer;transition:.15s;}
+  .sync-now-btn:hover{border-color:var(--gold);background:#f3e6da;}
+  .sync-now-btn:disabled{opacity:.6;cursor:not-allowed;}
   .month-grid{max-width:1200px;margin:26px auto;padding:0 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;}
   .month-tile{background:#fff;border:1px solid var(--border);border-radius:14px;padding:22px 16px;text-align:center;cursor:pointer;transition:.15s;position:relative;overflow:hidden;}
   .month-tile:hover{border-color:var(--gold);box-shadow:0 8px 20px rgba(57,32,21,.08);transform:translateY(-2px);}
@@ -1333,12 +1337,12 @@ async function saveUsers(users) {
 function findUser(users, username, password) {
   const u = username.trim().toLowerCase();
   if (u === APP_USERNAME && password === getCurrentPassword()) {
-    return { username: APP_USERNAME, role: "admin", status: "ok" };
+    return { username: APP_USERNAME, name: "علي", role: "admin", status: "ok" };
   }
   const match = users.find(x => x.username.trim().toLowerCase() === u && x.password === password);
   if (!match) return null;
   if (match.enabled === false) return { status: "disabled" };
-  return { username: match.username, role: match.role, status: "ok" };
+  return { username: match.username, name: match.name || match.username, role: match.role, status: "ok" };
 }
 function getCurrentUser() {
   try {
@@ -1367,10 +1371,22 @@ function Login({
   const [newPass2, setNewPass2] = useState("");
   const [showNewPass, setShowNewPass] = useState(false);
   const locked = attempts >= MAX_ATTEMPTS;
-  function handleSubmit(e) {
+  const [checking, setChecking] = useState(false);
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (locked) return;
-    const user = findUser(users || [], username, password);
+    if (locked || checking) return;
+    // نجيب آخر نسخة من المستخدمين من السحابة مباشرة وقت الدخول (وليس نسخة
+    // مخزّنة مسبقًا)، عشان أي تعطيل حساب من جهاز آخر ينعكس فورًا، بدون تأخير.
+    setChecking(true);
+    let freshUsers = users || [];
+    if (isCloudConfigured()) {
+      try {
+        const cloudUsers = await cloudLoad(USERS_CLOUD_DOC);
+        if (cloudUsers) freshUsers = cloudUsers;
+      } catch { /* لو فشل الاتصال، نكمل بالنسخة المتاحة محليًا */ }
+    }
+    setChecking(false);
+    const user = findUser(freshUsers, username, password);
     if (user && user.status === "disabled") {
       setPassword("");
       setError("هذا الحساب معطَّل حاليًا. تواصل مع المدير لتفعيله.");
@@ -1459,8 +1475,8 @@ function Login({
   })))), /*#__PURE__*/React.createElement("button", {
     className: "login-btn",
     type: "submit",
-    disabled: locked
-  }, locked ? "الحساب مقفل مؤقتًا" : "تسجيل الدخول"), !locked && attempts > 0 && /*#__PURE__*/React.createElement("p", {
+    disabled: locked || checking
+  }, locked ? "الحساب مقفل مؤقتًا" : checking ? "جارِ التحقق..." : "تسجيل الدخول"), !locked && attempts > 0 && /*#__PURE__*/React.createElement("p", {
     className: "login-attempts"
   }, "المحاولات المتبقية: ", toArabicDigits(MAX_ATTEMPTS - attempts)), /*#__PURE__*/React.createElement("button", {
     type: "button",
@@ -1539,20 +1555,23 @@ function SettingsPage({
   const [cloudMsg, setCloudMsg] = useState("");
   const [cloudTesting, setCloudTesting] = useState(false);
   const [requireImportPass, setRequireImportPass] = useState(() => requireImportPassword());
+  const [newUserDisplayName, setNewUserDisplayName] = useState("");
   const [newUsername, setNewUsername] = useState("");
   const [newUserPass, setNewUserPass] = useState("");
   const [newUserRole, setNewUserRole] = useState("employee");
   const [userMsg, setUserMsg] = useState("");
   async function handleAddUser() {
     const uname = newUsername.trim();
-    if (!uname || uname.length < 2) { setUserMsg("اكتب اسم مستخدم لا يقل عن حرفين."); return; }
-    if (uname.toLowerCase() === APP_USERNAME) { setUserMsg("هذا الاسم محجوز، اختر اسمًا آخر."); return; }
-    if ((users || []).some(u => u.username.trim().toLowerCase() === uname.toLowerCase())) { setUserMsg("اسم المستخدم موجود مسبقًا."); return; }
+    const dname = newUserDisplayName.trim();
+    if (!dname) { setUserMsg("اكتب اسم المستخدم الظاهر (الاسم الشخصي)."); return; }
+    if (!uname || uname.length < 2) { setUserMsg("اكتب اسم دخول (يوزر) لا يقل عن حرفين."); return; }
+    if (uname.toLowerCase() === APP_USERNAME) { setUserMsg("هذا اليوزر محجوز، اختر يوزر آخر."); return; }
+    if ((users || []).some(u => u.username.trim().toLowerCase() === uname.toLowerCase())) { setUserMsg("اسم الدخول (يوزر) موجود مسبقًا."); return; }
     if (!newUserPass || newUserPass.length < 4) { setUserMsg("كلمة المرور لا تقل عن 4 أحرف."); return; }
-    const next = [...(users || []), { username: uname, password: newUserPass, role: newUserRole, enabled: true }];
+    const next = [...(users || []), { name: dname, username: uname, password: newUserPass, role: newUserRole, enabled: true }];
     await saveUsers(next);
     onUsersChange(next);
-    setNewUsername(""); setNewUserPass(""); setNewUserRole("employee");
+    setNewUserDisplayName(""); setNewUsername(""); setNewUserPass(""); setNewUserRole("employee");
     setUserMsg("تمت إضافة المستخدم بنجاح.");
   }
   async function handleToggleUser(username) {
@@ -1755,7 +1774,7 @@ function SettingsPage({
             /*#__PURE__*/React.createElement("span", null, "—")
           ),
           (users || []).map(u => /*#__PURE__*/React.createElement("div", { key: u.username, className: "user-row" },
-            /*#__PURE__*/React.createElement("span", null, u.username),
+            /*#__PURE__*/React.createElement("span", null, u.name ? `${u.name} (${u.username})` : u.username),
             /*#__PURE__*/React.createElement("span", { className: "role-pill role-" + u.role }, ROLE_LABELS[u.role] || u.role),
             /*#__PURE__*/React.createElement("div", { className: "user-row-actions" },
               /*#__PURE__*/React.createElement("button", {
@@ -1774,7 +1793,8 @@ function SettingsPage({
           (!users || users.length === 0) && /*#__PURE__*/React.createElement("p", { className: "hint", style: { padding: "8px 0" } }, "لا يوجد مستخدمون إضافيون بعد.")
         ),
         /*#__PURE__*/React.createElement("div", { className: "user-add-form" },
-          /*#__PURE__*/React.createElement("input", { placeholder: "اسم المستخدم", value: newUsername, onChange: e => setNewUsername(e.target.value) }),
+          /*#__PURE__*/React.createElement("input", { placeholder: "الاسم", value: newUserDisplayName, onChange: e => setNewUserDisplayName(e.target.value) }),
+          /*#__PURE__*/React.createElement("input", { placeholder: "اسم الدخول (يوزر)", value: newUsername, onChange: e => setNewUsername(e.target.value) }),
           /*#__PURE__*/React.createElement("input", { type: "password", placeholder: "كلمة المرور", value: newUserPass, onChange: e => setNewUserPass(e.target.value) }),
           /*#__PURE__*/React.createElement("select", { value: newUserRole, onChange: e => setNewUserRole(e.target.value) },
             /*#__PURE__*/React.createElement("option", { value: "admin" }, "مدير"),
@@ -1825,9 +1845,12 @@ function Home({
   settings,
   monthsWithData,
   role,
+  userName,
   onOpenMonth,
   onOpenSettings,
-  onLogout
+  onLogout,
+  onSyncNow,
+  syncingNow
 }) {
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "topbar"
@@ -1840,7 +1863,9 @@ function Home({
   }, /*#__PURE__*/React.createElement("img", {
     src: LOGO_WHITE,
     alt: "شعار البلدية"
-  }))), /*#__PURE__*/React.createElement("div", {
+  })), userName && /*#__PURE__*/React.createElement("span", {
+    className: "current-user-badge"
+  }, userName)), /*#__PURE__*/React.createElement("div", {
     className: "topbar-titles topbar-titles-center"
   }, /*#__PURE__*/React.createElement("h1", {
     className: "topbar-title brand-font"
@@ -1867,7 +1892,14 @@ function Home({
     size: 17
   }))))), /*#__PURE__*/React.createElement("div", {
     className: "home-header"
-  }, /*#__PURE__*/React.createElement("h2", null, "رواتب الموظفين لعام ", toArabicDigits(settings.year)), /*#__PURE__*/React.createElement("p", null, "اختر الشهر لاستيراد مسير الرواتب وعرض الخلاصة")), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("h2", null, "رواتب الموظفين لعام ", toArabicDigits(settings.year)), /*#__PURE__*/React.createElement("p", null, "اختر الشهر لاستيراد مسير الرواتب وعرض الخلاصة"), /*#__PURE__*/React.createElement("button", {
+    className: "sync-now-btn",
+    onClick: onSyncNow,
+    disabled: syncingNow
+  }, /*#__PURE__*/React.createElement(Icon, {
+    path: I.cloud,
+    size: 14
+  }), syncingNow ? " جارِ المزامنة..." : " اضغط لمزامنة وتحديث البيانات")), /*#__PURE__*/React.createElement("div", {
     className: "month-grid"
   }, MONTHS_AR.map((name, idx) => {
     const hasData = monthsWithData.has(idx);
@@ -2503,20 +2535,20 @@ function MonthWorkspace({
     className: "toolbar"
   }, /*#__PURE__*/React.createElement("div", {
     className: "tabs"
-  }, !isViewer && /*#__PURE__*/React.createElement("button", {
+  }, /*#__PURE__*/React.createElement("button", {
     className: "tab" + (tab === "data" ? " active" : ""),
     onClick: () => setTab("data")
   }, "بيانات الموظفين (", toArabicDigits(employees.length), ")"), /*#__PURE__*/React.createElement("button", {
     className: "tab" + (tab === "summary" ? " active" : ""),
     onClick: () => setTab("summary")
-  }, "خلاصة المسير"), !isViewer && /*#__PURE__*/React.createElement("button", {
+  }, "خلاصة المسير"), /*#__PURE__*/React.createElement("button", {
     className: "tab" + (tab === "absence" ? " active" : ""),
     onClick: () => setTab("absence")
   }, "إحصائيات الغياب")), /*#__PURE__*/React.createElement("div", {
     className: "toolbar-actions"
-  }, isViewer ? /*#__PURE__*/React.createElement("span", {
+  }, isViewer && /*#__PURE__*/React.createElement("span", {
     className: "save-status"
-  }, "وضع القراءة فقط") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
+  }, "وضع القراءة فقط — عرض وتصدير الخلاصة فقط"), /*#__PURE__*/React.createElement(React.Fragment, null, !isViewer && /*#__PURE__*/React.createElement("span", {
     className: "save-status"
   }, syncing ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Icon, {
     path: I.loader,
@@ -2550,26 +2582,29 @@ function MonthWorkspace({
     }
   }), /*#__PURE__*/React.createElement("button", {
     className: "btn btn-outline",
-    onClick: requestImport
+    onClick: requestImport,
+    disabled: isViewer
   }, /*#__PURE__*/React.createElement(Icon, {
     path: I.upload,
     size: 14
   }), " استيراد مسير الرواتب"), employees.length > 0 && /*#__PURE__*/React.createElement("button", {
     className: "btn btn-outline",
-    onClick: () => setShowClearConfirm(true)
+    onClick: () => setShowClearConfirm(true),
+    disabled: isViewer
   }, /*#__PURE__*/React.createElement(Icon, {
     path: I.trash,
     size: 14
   }), " مسح بيانات المسير"), /*#__PURE__*/React.createElement("button", {
     className: "btn btn-outline",
-    onClick: requestRawExport
+    onClick: requestRawExport,
+    disabled: isViewer
   }, /*#__PURE__*/React.createElement(Icon, {
     path: I.lock,
     size: 14
   }), " تصدير المسير"), /*#__PURE__*/React.createElement("button", {
     className: "btn" + (dirty ? " btn-navy" : " btn-outline"),
     onClick: saveNow,
-    disabled: !dirty
+    disabled: !dirty || isViewer
   }, /*#__PURE__*/React.createElement(Icon, {
     path: I.save,
     size: 14
@@ -2936,6 +2971,7 @@ function App() {
   const [monthsWithData, setMonthsWithData] = useState(() => new Set());
   const [users, setUsers] = useState(() => loadUsersLocal());
   const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
+  const [syncingNow, setSyncingNow] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -2943,15 +2979,38 @@ function App() {
     return () => { cancelled = true; };
   }, []);
 
-  useEffect(() => {
-    if (!authed) return;
+  function refreshMonthsWithData() {
     const found = new Set();
     for (let i = 0; i < 12; i++) {
       const list = loadJSON(monthKey(settings.year, i), []);
       if (list && list.length > 0) found.add(i);
     }
     setMonthsWithData(found);
+  }
+
+  useEffect(() => {
+    if (!authed) return;
+    refreshMonthsWithData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authed, settings.year, screen]);
+
+  async function handleSyncNow() {
+    if (syncingNow) return;
+    setSyncingNow(true);
+    try {
+      if (isCloudConfigured()) {
+        for (let i = 0; i < 12; i++) {
+          const key = monthKey(settings.year, i);
+          const cloudData = await cloudLoad(key);
+          if (cloudData !== null) saveJSON(key, cloudData);
+        }
+        const cloudUsers = await syncUsersFromCloud();
+        setUsers(cloudUsers);
+      }
+    } catch { /* تجاهل أي خطأ اتصال مؤقت */ }
+    refreshMonthsWithData();
+    setSyncingNow(false);
+  }
   function handleSaveSettings(next) {
     setSettings(next);
     saveJSON(SETTINGS_KEY, next);
@@ -2972,12 +3031,15 @@ function App() {
     settings: settings,
     monthsWithData: monthsWithData,
     role: role,
+    userName: currentUser ? currentUser.name : null,
     onOpenMonth: idx => {
       setActiveMonth(idx);
       setScreen("month");
     },
     onOpenSettings: () => setScreen("settings"),
-    onLogout: handleLogout
+    onLogout: handleLogout,
+    onSyncNow: handleSyncNow,
+    syncingNow: syncingNow
   }), screen === "month" && /*#__PURE__*/React.createElement(MonthWorkspace, {
     year: settings.year,
     monthIdx: activeMonth,
